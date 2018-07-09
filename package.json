@@ -5,26 +5,18 @@
   "main": "index.js",
   "typings": "dts/index.ts",
   "dependencies": {
-    "base64-stream": "^0.1.3",
-    "bluebird": "^2.9.25",
-    "bufferstream": "^0.6.2",
-    "debug": "^2.2.0",
-    "formidable": "~1.1.1",
-    "node-expat": "^2.3.10",
-    "request": "^2.55.0",
-    "request-debug": "^0.2.0",
-    "stream-buffers": "~0.2.5",
-    "through2": "^2.0.0"
+    "@dlcs/tools": "^1.3.0",
+    "lodash": "^4.17.10",
+    "request": "^2.87.0",
+    "xml2js": "^0.4.19"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.4",
-    "@types/mocha": "^2.2.43",
-    "@types/node": "^8.0.31",
-    "chai": "^4.1.2",
+    "@types/lodash": "^4.14.110",
+    "@types/node": "^10.5.1",
+    "@types/request": "^2.47.1",
+    "@types/xml2js": "^0.4.3",
     "coffeescript": "^1.8.0",
-    "mocha": "^3.5.3",
-    "source-map-support": "^0.4.18",
-    "ts-node": "^3.3.0",
+    "tslint": "^5.10.0",
     "typescript": "^2.5.3"
   },
   "files": [
@@ -33,9 +25,7 @@
     "index.js"
   ],
   "scripts": {
-    "pretest": "coffee --compile --output dist/ lib/ && tsc --noEmit",
-    "test": "node_modules/mocha/bin/_mocha --compilers ts-node/register test/*.ts",
-    "prepare": "npm run test",
+    "prestart": "coffee --compile --output dist/ lib/ && tsc --noEmit",
     "dev": "coffee --watch --output dist lib/"
   },
   "repository": {

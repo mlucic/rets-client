@@ -1,10 +1,7 @@
-### jshint node:true ###
-### jshint -W097 ###
-'use strict'
+import { createHash } from 'crypto';
+import * as Request from 'request';
 
-crypto = require('crypto')
-request = require('request')
-Promise = require('bluebird')
+import { IClientConfiguration } from './IClientConfiguration';
 
 metadata = require('./clientModules/metadata')
 search = require('./clientModules/search')
@@ -23,46 +20,42 @@ URL_KEYS =
   LOGIN: "Login"
   LOGOUT: "Logout"
 
+export class RETSSession {
+    public readonly configuration: IClientConfiguration;
+    private session: Request.RequestAPI<Request.Request, Request.CoreOptions, Request.RequiredUriUrl> | undefined;
 
-class Client
-  constructor: (_settings) ->
-    @settings = {}
-    for key, val of _settings
-      @settings[key] = val
-    
-    @headers =
-      'User-Agent': @settings.userAgent || 'RETS node-client/4.x',
-      'RETS-Version': @settings.version || 'RETS/1.7.2'
+    public constructor(configuration: IClientConfiguration) {
+        this.configuration = configuration;
+        const headers: { [key: string]: string } = {};
+        headers['User-Agent'] = this.configuration.userAgent || 'RETS NodeJS-Client/5.x';
+        headers['RETS-Version'] = this.configuration.version;
+        if (this.configuration.userAgentPassword) {
+            headers['RETS-UA-Authorization'] = 'Digest ' + createHash('md5').update([
+                createHash('md5').update(`${this.configuration.userAgent}:${this.configuration.userAgentPassword}`).digest('hex'),
+                '',
+                this.configuration.sessionId || '',
+                headers['RETS-Version']
+            ].join(':')).digest('hex');
+        }
+        const requestOptions: Request.CoreOptions = {
+            jar: Request.jar(),
+            headers: headers,
+            method: this.configuration.method || 'GET',
+            auth: {
+                user: this.configuration.username,
+                pass: this.configuration.password,
+                sendImmediately: false
+            },
+            timeout: this.configuration.timeout,
+            proxy: this.configuration.proxyUrl,
+            tunnel: this.configuration.useTunnel
+        };
+        this.session = Request.defaults(requestOptions);
+    }
 
-    # add RETS-UA-Authorization header
-    if @settings.userAgentPassword
-      a1 = crypto.createHash('md5').update([@settings.userAgent, @settings.userAgentPassword].join(":")).digest('hex')
-      retsUaAuth = crypto.createHash('md5').update([a1, "", @settings.sessionId || "", @settings.version || @headers['RETS-Version']].join(":")).digest('hex')
-      @headers['RETS-UA-Authorization'] = "Digest " + retsUaAuth
-
-    debugRequest = require('debug')('rets-client:request')
-    if debugRequest.enabled
-      require('request-debug')(request, (type, data) -> debugRequest("#{type}:", data))
-    if 'requestDebugFunction' of @settings
-      require('request-debug')(request, @settings.requestDebugFunction)
-    
-    defaults =
-      jar: request.jar()
-      headers: @headers
-      
-    if @settings.method
-      defaults.method = @settings.method
-    else
-      defaults.method = 'GET'
-
-    if @settings.username && @settings.password
-      defaults.auth =
-        'user': @settings.username
-        'pass': @settings.password
-        'sendImmediately': false
-    
-    if @settings.timeout
-      defaults.timeout = @settings.timeout
+    public async login(): Promise<void> {
+    }
+}
 
     if @settings.proxyUrl
       defaults.proxy = @settings.proxyUrl

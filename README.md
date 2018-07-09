@@ -1,4 +1,4 @@
-rets-client
+NodeJS RETS/DDF Client
 ===========
 A RETS (Real Estate Transaction Standard) client for Node.js.
 
