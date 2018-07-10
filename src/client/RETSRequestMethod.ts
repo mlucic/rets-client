@@ -1,4 +1,4 @@
-export enum RETSRequestMethod {
+export enum RetsRequestMethod {
     GET = 'GET',
     POST = 'POST'
 }

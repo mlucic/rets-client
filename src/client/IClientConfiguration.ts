@@ -1,5 +1,5 @@
-import { RETSRequestMethod } from './RETSRequestMethod';
-import { RETSVersion } from './RETSVersion';
+import { RetsRequestMethod } from './RetsRequestMethod';
+import { RetsVersion } from './RETSVersion';
 
 export interface IClientConfiguration {
     url: string;
@@ -7,10 +7,10 @@ export interface IClientConfiguration {
     useTunnel?: boolean;
     username: string;
     password: string;
-    version: RETSVersion;
+    version: RetsVersion;
     userAgent?: string;
     userAgentPassword?: string;
-    method?: RETSRequestMethod;
+    method?: RetsRequestMethod;
     sessionId?: string;
     timeout?: number;
 }

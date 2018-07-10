@@ -6,6 +6,10 @@
  */
 
 export const ReplyCode: { [key: string]: number | number[] } = {
+    ParsingError: -1,
+    ParameterError: -2,
+    NoPermission: -3,
+
     OperationSuccessful: 0,
     SystemError: 10000,
     ZeroBalance: 20003,
@@ -63,7 +67,8 @@ export const ReplyCode: { [key: string]: number | number[] } = {
 
 const codeKeys = Object.keys(ReplyCode);
 
-export function findReplyCodeName(code: number): string | undefined {
+export function findReplyCodeName(code: number | string): string | undefined {
+    code = +code;
     for (let i = -1; ++i < codeKeys.length;) {
         const targetCode = ReplyCode[codeKeys[i]];
         if (typeof targetCode === 'number' && targetCode === code) {

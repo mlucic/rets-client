@@ -1,21 +1,15 @@
-import urlUtil = require('url');
+import { parse, format, UrlObject } from 'url';
 
-// Returns a valid url for use with RETS server. If target url just contains a path, fullURL's protocol and host will be utilized.
-
-let normalizeUrl = function (targetUrl, fullUrl) {
-  let loginUrlObj = urlUtil.parse(fullUrl, true, true);
-  let targetUrlObj = urlUtil.parse(targetUrl, true, true);
-  if (targetUrlObj.host !== null) {
-    return targetUrl;
-  }
-  let fixedUrlObj = {
-    protocol: loginUrlObj.protocol,
-    slashes: true,
-    host: loginUrlObj.host,
-    pathname: targetUrlObj.pathname,
-    query: targetUrlObj.query
-  };
-  return urlUtil.format(fixedUrlObj);
-};
-
-export default normalizeUrl;
+export function replaceAddress(target: string, base: string) {
+    const baseUri = parse(base, true, true);
+    const targetUri = parse(target, true, true);
+    if (targetUri.host !== null) { return target; }
+    const result: UrlObject = {
+        protocol: baseUri.protocol,
+        slashes: true,
+        host: baseUri.host,
+        pathname: targetUri.pathname,
+        query: targetUri.query
+    };
+    return format(result);
+}

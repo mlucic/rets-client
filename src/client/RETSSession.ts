@@ -1,31 +1,98 @@
+import {
+    DefaultUriUrlRequestApi, Request, CoreOptions, OptionalUriUrl, RequestAPI, RequiredUriUrl, Response,
+    defaults as defaultRequest, jar as requestJar
+} from 'request';
 import { createHash } from 'crypto';
-import * as Request from 'request';
 
+import { RetsServerError, RetsProcessingError } from '../utils/errors';
 import { IClientConfiguration } from './IClientConfiguration';
+import { parseRetsResponse } from '../utils/parseRetsResponse';
+import { RetsRequestMethod } from './RetsRequestMethod';
+import { processHeaders } from '../utils/processHeaders';
+import { replaceAddress } from '../utils/normalizeUrl';
+import { IRetsResponse, IRetsResponseBody } from './IRetsResponse';
+import { RetsVersion } from './RETSVersion';
+import { RetsAction } from './RetsAction';
 
-metadata = require('./clientModules/metadata')
-search = require('./clientModules/search')
-object = require('./clientModules/object')
-
-auth = require('./utils/auth')
-normalizeUrl = require('./utils/normalizeUrl')
-errors = require('./utils/errors')
-
-URL_KEYS =
-  GET_METADATA: "GetMetadata"
-  GET_OBJECT: "GetObject"
-  SEARCH: "Search"
-  UPDATE: "Update"
-  ACTION: "Action"
-  LOGIN: "Login"
-  LOGOUT: "Logout"
-
-export class RETSSession {
+export class RetsSession {
     public readonly configuration: IClientConfiguration;
-    private session: Request.RequestAPI<Request.Request, Request.CoreOptions, Request.RequiredUriUrl> | undefined;
+    public readonly actions: { [key: string]: DefaultUriUrlRequestApi<Request, CoreOptions, OptionalUriUrl> } = {};
+    private session: RequestAPI<Request, CoreOptions, RequiredUriUrl>;
 
     public constructor(configuration: IClientConfiguration) {
         this.configuration = configuration;
+        this.session = defaultRequest({
+            jar: requestJar(),
+            headers: this.createHeader(),
+            method: this.configuration.method || 'GET',
+            auth: {
+                user: this.configuration.username,
+                pass: this.configuration.password,
+                sendImmediately: false
+            },
+            timeout: this.configuration.timeout,
+            proxy: this.configuration.proxyUrl,
+            tunnel: this.configuration.useTunnel
+        });
+        this.actions[RetsAction.Login] = this.session.defaults({ uri: this.configuration.url });
+    }
+
+    public async login(): Promise<void> {
+        const response = await this.sendAction(RetsAction.Login, {}).catch((e: Error | IRetsResponse) => e);
+        if (response instanceof Error) { throw response; }
+        if (response.headers.setCookie) {
+            const cookies = ([] as string[]).concat(response.headers.SetCookie);
+            for (let i = -1; ++i < cookies.length;) {
+                const matches = cookies[i].match(/RETS\-Session\-ID=([^;]+);/);
+                if (matches) {
+                    this.configuration.sessionId = matches[i];
+                    break;
+                }
+            }
+        }
+        if (response.headers.RETSVersion) {
+            this.configuration.version =
+                (response.headers.RETSVersion instanceof Array ? response.headers.RETSVersion[0] : response.headers.RETSVersion) as RetsVersion;
+        }
+        this.session = this.session.defaults({ headers: this.createHeader() }); // 更新Header
+        this.actions[RetsAction.Login] = this.session.defaults({ uri: this.configuration.url });
+        const source = response.body.extra.content;
+        if (!source) {
+            throw new RetsProcessingError(new ReferenceError('Could not find URL information after login'));
+        }
+        source.split('\r\n').filter(v => v.indexOf('=') > -1).map(v => v.split('=')).forEach(url => {
+            const [name, address] = url;
+            let action: RetsAction | undefined;
+            switch (name) {
+                case 'GetObject':
+                    action = RetsAction.GetObject;
+                    break;
+                case 'Logout':
+                    action = RetsAction.Logout;
+                    break;
+                case 'Search':
+                    action = RetsAction.Search;
+                    break;
+            }
+            if (action) {
+                this.actions[action] = this.session.defaults({ uri: replaceAddress(address, this.configuration.url) });
+            }
+        });
+    }
+
+    public async logout(): Promise<void> {
+        const response = await this.sendAction(RetsAction.Logout, {}).catch((e: Error | IRetsResponse) => e);
+        if (response instanceof Error) { throw response; }
+        delete this.actions[RetsAction.GetObject];
+        delete this.actions[RetsAction.Logout];
+        delete this.actions[RetsAction.Search];
+    }
+
+    public async search(options: IRetsQueryOptions): Promise<IRetsResponseBody> {
+
+    }
+
+    private createHeader(): { [key: string]: string } {
         const headers: { [key: string]: string } = {};
         headers['User-Agent'] = this.configuration.userAgent || 'RETS NodeJS-Client/5.x';
         headers['RETS-Version'] = this.configuration.version;
@@ -37,85 +104,45 @@ export class RETSSession {
                 headers['RETS-Version']
             ].join(':')).digest('hex');
         }
-        const requestOptions: Request.CoreOptions = {
-            jar: Request.jar(),
-            headers: headers,
-            method: this.configuration.method || 'GET',
-            auth: {
-                user: this.configuration.username,
-                pass: this.configuration.password,
-                sendImmediately: false
-            },
-            timeout: this.configuration.timeout,
-            proxy: this.configuration.proxyUrl,
-            tunnel: this.configuration.useTunnel
-        };
-        this.session = Request.defaults(requestOptions);
+        return headers;
     }
 
-    public async login(): Promise<void> {
+    private async sendAction(action: RetsAction, query: any): Promise<IRetsResponse> {
+        const data = await new Promise<{ response: Response, body: any }>((resolve, reject) =>
+            this.actions[action](
+                { [this.configuration.method === RetsRequestMethod.POST ? 'form' : 'qs']: query },
+                (e, r, b) => {
+                    if (e) {
+                        reject(e);
+                    } else {
+                        resolve({ response: r, body: b });
+                    }
+                })
+        ).catch((e: Error) => e);
+        if (data instanceof Error) { throw data; }
+        if (data.response.statusCode !== 200) {
+            throw new RetsServerError(data.response.statusCode, data.response.statusMessage);
+        } else {
+            const response = {
+                headers: processHeaders(data.response.rawHeaders),
+                body: await parseRetsResponse(data.body).catch((e: Error) => e),
+                response: data.response
+            };
+            if (response.body instanceof Error) { throw response.body; }
+            return response as IRetsResponse;
+        }
     }
 }
 
-    if @settings.proxyUrl
-      defaults.proxy = @settings.proxyUrl
-      if @settings.useTunnel
-        defaults.tunnel = @settings.useTunnel
-    
-    @baseRetsSession = request.defaults defaults
-    @loginRequest = Promise.promisify(@baseRetsSession.defaults(uri: @settings.loginUrl))
-
-
-  login: () ->
-    auth.login(@loginRequest, @)
-    .then (retsContext) =>
-      @systemData = retsContext.systemData
-      @loginHeaderInfo = retsContext.headerInfo
-      @urls = {}
-      for key,val of URL_KEYS
-        if @systemData[val]
-          @urls[val] = normalizeUrl(@systemData[val], @settings.loginUrl)
-          
-      hasPermissions = true
-      missingPermissions = []
-      if @urls[URL_KEYS.GET_METADATA]
-        @metadata = metadata(@baseRetsSession.defaults(uri: @urls[URL_KEYS.GET_METADATA]), @)
+if @urls[URL_KEYS.SEARCH]
+@search = search(@baseRetsSession.defaults(uri: @urls[URL_KEYS.SEARCH]), @)
       else
-        hasPermissions = false
-        missingPermissions.push URL_KEYS.GET_METADATA
-      if @urls[URL_KEYS.SEARCH]
-        @search = search(@baseRetsSession.defaults(uri: @urls[URL_KEYS.SEARCH]), @)
-      else
-        hasPermissions = false
-        missingPermissions.push URL_KEYS.SEARCH
-      if @urls[URL_KEYS.GET_OBJECT]
-        @objects = object(@baseRetsSession.defaults(uri: @urls[URL_KEYS.GET_OBJECT]), @)
-      @logoutRequest = Promise.promisify(@baseRetsSession.defaults(uri: @urls[URL_KEYS.LOGOUT]))
-      if !hasPermissions
+hasPermissions = false
+missingPermissions.push URL_KEYS.SEARCH
+if @urls[URL_KEYS.GET_OBJECT]
+@objects = object(@baseRetsSession.defaults(uri: @urls[URL_KEYS.GET_OBJECT]), @)
+@logoutRequest = Promise.promisify(@baseRetsSession.defaults(uri: @urls[URL_KEYS.LOGOUT]))
+if !hasPermissions
         throw new errors.RetsPermissionError(missingPermissions)
-        
-      if @settings.userAgentPassword && @settings.sessionId
-        a1 = crypto.createHash('md5').update([@settings.userAgent, @settings.userAgentPassword].join(":")).digest('hex')
-        retsUaAuth = crypto.createHash('md5').update([a1, "", @settings.sessionId || "", @settings.version || @headers['RETS-Version']].join(":")).digest('hex')
-        @headers['RETS-UA-Authorization'] = "Digest " + retsUaAuth
-        
-      return @
 
-  # Logs the user out of the current session
-  logout: () ->
-    auth.logout(@logoutRequest, @)
-    .then (retsContext) =>
-      @logoutHeaderInfo = retsContext.headerInfo
-
-
-Client.getAutoLogoutClient = (settings, handler) -> Promise.try () ->
-  client = new Client(settings)
-  client.login()
-  .then () ->
-    Promise.try () ->
-      handler(client)
-    .finally () ->
-      client.logout()
-
-
-module.exports = Client
+return @

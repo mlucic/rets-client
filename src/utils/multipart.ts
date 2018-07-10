@@ -7,7 +7,7 @@ import through2 = require('through2');
 let debug = require('debug')('rets-client:multipart');
 let debugVerbose = require('debug')('rets-client:multipart:verbose');
 
-import retsParsing = require('./retsParsing');
+import retsParsing = require('./parseRetsResponse');
 import errors = require('./errors');
 import headersHelper = require('./processHeaders');
 

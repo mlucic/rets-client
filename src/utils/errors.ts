@@ -1,13 +1,14 @@
 import { findReplyCodeName } from './ReplyCode';
+import { IRetsResponse, IRetsResponseBody } from '../client/IRetsResponse';
 
-export class RETSError extends Error {
+export class RetsError extends Error {
     public readonly errorCode: number;
 
-    public constructor(name: string, code: number) {
+    public constructor(name: string, code: number, message?: string) {
         super();
         this.name = name;
         this.errorCode = code;
-        this.message = findReplyCodeName(code) || 'Unknown Reply Code';
+        this.message = message || findReplyCodeName(code) || 'Unknown Reply Code';
     }
 
     public toString(): string {
@@ -15,32 +16,33 @@ export class RETSError extends Error {
     }
 }
 
-export class RETSReplyError extends RETSError {
-    public constructor(code: number) {
-        super('RETSReplyError', code);
+export class RetsReplyError extends RetsError {
+    public constructor(response: IRetsResponseBody) {
+        super('RetsReplyError', response.replyCode, response.replyText);
     }
 }
 
-export class RETSServerError extends RETSError {
-    public constructor(code: number) {
-        super('RETSServerError', code);
+export class RetsServerError extends RetsError {
+    public constructor(status: number, message: string) {
+        super('RetsServerError', status, message);
     }
 }
 
-export class RETSProcessingError extends RETSError {
-    public constructor(code: number) {
-        super('RETSProcessingError', code);
+export class RetsProcessingError extends RetsError {
+    public constructor(error: Error) {
+        super('RetsProcessingError', -1, error.toString());
     }
 }
 
-export class RETSParamError extends RETSError {
-    public constructor(code: number) {
-        super('RETSParamError', code);
+export class RetsParamError extends RetsError {
+    public constructor(message: string) {
+        super('RetsParamError', -2, message);
     }
 }
 
-export class RETSPermissionError extends RETSError {
-    public constructor(code: number) {
-        super('RETSPermissionError', code);
+export class RetsPermissionError extends RetsError {
+    public constructor(permission: string | string[]) {
+        const permissions = permission instanceof Array ? permission : [permission];
+        super('RetsPermissionError', -3, `Missing permission: ${permissions.join(', ')}`);
     }
 }
