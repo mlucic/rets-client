@@ -1,57 +1,36 @@
 {
-  "name": "rets-client",
-  "version": "5.2.2",
-  "description": "A RETS client (Real Estate Transaction Standard).",
-  "main": "index.js",
-  "typings": "dts/index.ts",
+  "name": "rets-ddf-client",
+  "version": "1.0.0",
+  "description": "A RETS (Real Estate Transaction Standard) and DDF (Data Distribution Facility) client.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "dependencies": {
     "lodash": "^4.17.10",
     "request": "^2.87.0",
     "xml2js": "^0.4.19"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.110",
-    "@types/node": "^10.5.1",
+    "@types/lodash": "^4.14.111",
+    "@types/node": "^10.5.2",
     "@types/request": "^2.47.1",
     "@types/xml2js": "^0.4.3",
-    "coffeescript": "^1.8.0",
     "tslint": "^5.10.0",
-    "typescript": "^2.5.3"
-  },
-  "files": [
-    "dist",
-    "dts",
-    "index.js"
-  ],
-  "scripts": {
-    "prestart": "coffee --compile --output dist/ lib/ && tsc --noEmit",
-    "dev": "coffee --watch --output dist lib/"
+    "typescript": "^2.9.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sbruno81/rets-client.git"
+    "url": "https://github.com/WinUP/rets-client.git"
   },
   "keywords": [
     "rets",
     "Real Estate Transaction Standard",
-    "client",
-    "real",
-    "estate",
-    "transaction",
-    "standard",
-    "promise",
-    "mls",
-    "stream",
-    "streams",
-    "streaming"
-  ],
-  "author": "Steve Bruno <stevenrbruno@icloud.com>",
-  "contributors": [
-    "Steve Bruno <stevenrbruno@icloud.com>",
-    "Joe Ibershoff <joe@realtymaps.com>"
+    "ddf",
+    "Data Distribution Facility",
+    "real estate",
+    "mls"
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sbruno81/rets-client/issues"
+    "url": "https://github.com/WinUP/rets-client/issues"
   }
 }

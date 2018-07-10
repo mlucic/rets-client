@@ -1,14 +1,14 @@
 import { RetsFormat } from './RetsFormat';
 
 export interface IRetsQueryOptions {
-    QueryType?: string;
-    Format?: RetsFormat;
-    Count?: number;
-    StandardNames?: number;
-    RestrictedIndicator?: string;
-    Limit?: number;
-    Offset?: number;
-    SearchType: string;
-    Class: string;
-    Query?: string;
+    restrictedIndicator?: string;
+    standardNames?: number;
+    queryType?: string;
+    format?: RetsFormat;
+    offset?: number;
+    count?: number;
+    limit?: number;
+    query?: string;
+    searchType: string;
+    class: string;
 }

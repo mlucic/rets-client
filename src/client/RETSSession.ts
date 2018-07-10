@@ -5,12 +5,12 @@ import {
 import { createHash } from 'crypto';
 
 import { RetsServerError, RetsProcessingError } from '../utils/errors';
+import { IRetsResponse, IRetsResponseBody } from './IRetsResponse';
 import { IClientConfiguration } from './IClientConfiguration';
 import { parseRetsResponse } from '../utils/parseRetsResponse';
 import { RetsRequestMethod } from './RetsRequestMethod';
 import { processHeaders } from '../utils/processHeaders';
-import { replaceAddress } from '../utils/normalizeUrl';
-import { IRetsResponse, IRetsResponseBody } from './IRetsResponse';
+import { replaceAddress } from '../utils/replaceAddress';
 import { RetsVersion } from './RETSVersion';
 import { RetsAction } from './RetsAction';
 
