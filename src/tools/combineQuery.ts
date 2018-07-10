@@ -12,6 +12,7 @@ export function combineQuery(source: IRetsQueryOptions): { [key: string]: any } 
     result.Query = source.query;
     result.SearchType = source.searchType;
     result.Class = source.class;
+    result.Culture = source.culture;
     if (!result.SearchType) { throw new RetsProcessingError(new TypeError('SearchType is required for Search action')); }
     if (!result.Class) { throw new RetsProcessingError(new TypeError('Class is required for Search action')); }
     return result;

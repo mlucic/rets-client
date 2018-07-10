@@ -1,4 +1,5 @@
 import { RetsFormat } from './RetsFormat';
+import { DdfCulture } from './DdfCulture';
 
 export interface IRetsQueryOptions {
     restrictedIndicator?: string;
@@ -11,4 +12,5 @@ export interface IRetsQueryOptions {
     query?: string;
     searchType: string;
     class: string;
+    culture?: DdfCulture;
 }

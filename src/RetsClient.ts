@@ -11,7 +11,7 @@ import {
 import { parseRetsResponse } from './tools/parseRetsResponse';
 import { processHeaders } from './tools/processHeaders';
 import { replaceAddress } from './tools/replaceAddress';
-import { combineQuery } from './tools/queryOptions';
+import { combineQuery } from './tools/combineQuery';
 
 export class RetsClient {
     public readonly configuration: IClientConnection;
