@@ -1,9 +1,8 @@
 import * as Xml2Js from 'xml2js';
 
-import { RetsProcessingError, RetsReplyError } from './errors';
-import { IRetsResponseBody } from '../client/IRetsResponse';
+import { IRetsResponseBody, RetsProcessingError, RetsReplyError } from '../models';
 import { findReplyCodeName } from './ReplyCode';
-import { parseHexString } from './parseHexString';
+import { decodeHexString } from './decodeHexString';
 
 const parser = new Xml2Js.Parser(Xml2Js.defaults['0.2']);
 
@@ -43,7 +42,7 @@ export async function parseRetsResponse(source: string, recordXmlTagName?: strin
     }
     if (root['COLUMNS']) {
         let dataDelimiter = '\t';
-        if (root['DELIMITER']) { dataDelimiter = parseHexString(root['DELIMITER'][0].$.value); }
+        if (root['DELIMITER']) { dataDelimiter = decodeHexString(root['DELIMITER'][0].$.value); }
         const columns = (root['COLUMNS'][0] as string).split(dataDelimiter);
         const rawData = (root['DATA'] as string[] || []).map(v => v.split(dataDelimiter));
         result.records = rawData.map(raw => raw.reduce((p, v, i) => {

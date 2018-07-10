@@ -1,11 +1,3 @@
-import { Response } from 'request';
-
-export interface IRetsResponse {
-    headers: { [key: string]: string | string[] };
-    body: IRetsResponseBody;
-    response: Response;
-}
-
 export interface IRetsResponseBody {
     replyCode: number;
     replyText: string;

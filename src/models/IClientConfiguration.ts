@@ -1,7 +1,7 @@
 import { RetsRequestMethod } from './RetsRequestMethod';
-import { RetsVersion } from './RETSVersion';
+import { RetsVersion } from './RetsVersion';
 
-export interface IClientConfiguration {
+export interface IClientConnection {
     url: string;
     proxyUrl?: string;
     useTunnel?: boolean;

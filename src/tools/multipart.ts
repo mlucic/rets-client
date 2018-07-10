@@ -8,7 +8,7 @@ let debug = require('debug')('rets-client:multipart');
 let debugVerbose = require('debug')('rets-client:multipart:verbose');
 
 import retsParsing = require('./parseRetsResponse');
-import errors = require('./errors');
+import errors = require('../models/Errors');
 import headersHelper = require('./processHeaders');
 
 // Multipart parser derived from formidable library. See https://github.com/felixge/node-formidable

@@ -6,7 +6,7 @@ import through2 = require('through2');
 import multipart = require('../utils/multipart');
 import retsHttp = require('../utils/retsHttp');
 import queryOptionHelpers = require('../utils/queryOptions');
-import errors = require('../utils/errors');
+import errors = require('../models/Errors');
 
 var _loadStreams = result => new Promise(function (resolve, reject) {
   let done = false;

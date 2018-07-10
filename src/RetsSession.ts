@@ -1,25 +1,23 @@
+import { createHash } from 'crypto';
+
 import {
     DefaultUriUrlRequestApi, Request, CoreOptions, OptionalUriUrl, RequestAPI, RequiredUriUrl, Response,
     defaults as defaultRequest, jar as requestJar
 } from 'request';
-import { createHash } from 'crypto';
-
-import { RetsServerError, RetsProcessingError } from '../utils/errors';
-import { IRetsResponse, IRetsResponseBody } from './IRetsResponse';
-import { IClientConfiguration } from './IClientConfiguration';
-import { parseRetsResponse } from '../utils/parseRetsResponse';
-import { RetsRequestMethod } from './RetsRequestMethod';
-import { processHeaders } from '../utils/processHeaders';
-import { replaceAddress } from '../utils/replaceAddress';
-import { RetsVersion } from './RETSVersion';
-import { RetsAction } from './RetsAction';
+import {
+    IRetsResponse, IRetsResponseBody, IClientConnection, RetsAction, RetsVersion, RetsRequestMethod, RetsServerError,
+    RetsProcessingError
+} from './models';
+import { parseRetsResponse } from './tools/parseRetsResponse';
+import { processHeaders } from './tools/processHeaders';
+import { replaceAddress } from './tools/replaceAddress';
 
 export class RetsSession {
-    public readonly configuration: IClientConfiguration;
+    public readonly configuration: IClientConnection;
     public readonly actions: { [key: string]: DefaultUriUrlRequestApi<Request, CoreOptions, OptionalUriUrl> } = {};
     private session: RequestAPI<Request, CoreOptions, RequiredUriUrl>;
 
-    public constructor(configuration: IClientConfiguration) {
+    public constructor(configuration: IClientConnection) {
         this.configuration = configuration;
         this.session = defaultRequest({
             jar: requestJar(),

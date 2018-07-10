@@ -1,4 +1,4 @@
-import errors = require('./errors');
+import errors = require('../models/Errors');
 
 // need to make a new object as we merge, as we don't want to modify the user's object
 

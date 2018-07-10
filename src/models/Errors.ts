@@ -1,5 +1,5 @@
-import { findReplyCodeName } from './ReplyCode';
-import { IRetsResponse, IRetsResponseBody } from '../client/IRetsResponse';
+import { IRetsResponseBody } from './IRetsResponseBody';
+import { findReplyCodeName } from '../tools/ReplyCode';
 
 export class RetsError extends Error {
     public readonly errorCode: number;
