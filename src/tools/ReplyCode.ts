@@ -6,9 +6,7 @@
  */
 
 export const ReplyCode: { [key: string]: number | number[] } = {
-    ParsingError: -1,
-    ParameterError: -2,
-    NoPermission: -3,
+    ClientError: -1,
 
     OperationSuccessful: 0,
     SystemError: 10000,

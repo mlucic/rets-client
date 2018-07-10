@@ -6,13 +6,14 @@ import {
 } from 'request';
 import {
     IRetsResponse, IRetsResponseBody, IClientConnection, RetsAction, RetsVersion, RetsRequestMethod, RetsServerError,
-    RetsProcessingError
+    RetsProcessingError, RetsClientError, IRetsQueryOptions
 } from './models';
 import { parseRetsResponse } from './tools/parseRetsResponse';
 import { processHeaders } from './tools/processHeaders';
 import { replaceAddress } from './tools/replaceAddress';
+import { combineQuery } from './tools/queryOptions';
 
-export class RetsSession {
+export class RetsClient {
     public readonly configuration: IClientConnection;
     public readonly actions: { [key: string]: DefaultUriUrlRequestApi<Request, CoreOptions, OptionalUriUrl> } = {};
     private session: RequestAPI<Request, CoreOptions, RequiredUriUrl>;
@@ -36,7 +37,7 @@ export class RetsSession {
     }
 
     public async login(): Promise<void> {
-        const response = await this.sendAction(RetsAction.Login, {}).catch((e: Error | IRetsResponse) => e);
+        const response = await this.sendAction(RetsAction.Login).catch((e: Error | IRetsResponse) => e);
         if (response instanceof Error) { throw response; }
         if (response.headers.setCookie) {
             const cookies = ([] as string[]).concat(response.headers.SetCookie);
@@ -79,7 +80,7 @@ export class RetsSession {
     }
 
     public async logout(): Promise<void> {
-        const response = await this.sendAction(RetsAction.Logout, {}).catch((e: Error | IRetsResponse) => e);
+        const response = await this.sendAction(RetsAction.Logout).catch((e: Error | IRetsResponse) => e);
         if (response instanceof Error) { throw response; }
         delete this.actions[RetsAction.GetObject];
         delete this.actions[RetsAction.Logout];
@@ -87,7 +88,9 @@ export class RetsSession {
     }
 
     public async search(options: IRetsQueryOptions): Promise<IRetsResponseBody> {
-
+        const response = await this.sendAction(RetsAction.Search, combineQuery(options));
+        if (response instanceof Error) { throw response; }
+        return response.body;
     }
 
     private createHeader(): { [key: string]: string } {
@@ -105,7 +108,8 @@ export class RetsSession {
         return headers;
     }
 
-    private async sendAction(action: RetsAction, query: any): Promise<IRetsResponse> {
+    private async sendAction(action: RetsAction, query?: any): Promise<IRetsResponse> {
+        if (!this.actions[action]) { throw new RetsClientError('No active session detected. Need login first.'); }
         const data = await new Promise<{ response: Response, body: any }>((resolve, reject) =>
             this.actions[action](
                 { [this.configuration.method === RetsRequestMethod.POST ? 'form' : 'qs']: query },
@@ -131,16 +135,3 @@ export class RetsSession {
         }
     }
 }
-
-if @urls[URL_KEYS.SEARCH]
-@search = search(@baseRetsSession.defaults(uri: @urls[URL_KEYS.SEARCH]), @)
-      else
-hasPermissions = false
-missingPermissions.push URL_KEYS.SEARCH
-if @urls[URL_KEYS.GET_OBJECT]
-@objects = object(@baseRetsSession.defaults(uri: @urls[URL_KEYS.GET_OBJECT]), @)
-@logoutRequest = Promise.promisify(@baseRetsSession.defaults(uri: @urls[URL_KEYS.LOGOUT]))
-if !hasPermissions
-        throw new errors.RetsPermissionError(missingPermissions)
-
-return @

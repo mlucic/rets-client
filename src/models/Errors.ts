@@ -36,13 +36,19 @@ export class RetsProcessingError extends RetsError {
 
 export class RetsParamError extends RetsError {
     public constructor(message: string) {
-        super('RetsParamError', -2, message);
+        super('RetsParamError', -1, message);
+    }
+}
+
+export class RetsClientError extends RetsError {
+    public constructor(message: string) {
+        super('RetsClientError', -1, message);
     }
 }
 
 export class RetsPermissionError extends RetsError {
     public constructor(permission: string | string[]) {
         const permissions = permission instanceof Array ? permission : [permission];
-        super('RetsPermissionError', -3, `Missing permission: ${permissions.join(', ')}`);
+        super('RetsPermissionError', -1, `Missing permission: ${permissions.join(', ')}`);
     }
 }
