@@ -1,4 +1,4 @@
-export interface IRetsResponseBody {
+export interface IRetsBody {
     replyCode: number;
     replyText: string;
     statusMessage: string;

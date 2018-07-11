@@ -2,17 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-          "name": "Current TS Tests File",
+          "name": "Debug",
           "type": "node",
           "request": "launch",
-          "program": "${workspaceRoot}/node_modules/.bin/_mocha",
-          "args": [
-            "-r", "ts-node/register",
-            "-r", "source-map-support/register",
-            "${relativeFile}"
-          ],
-          "cwd": "${workspaceRoot}",
-          "protocol": "inspector"
+          "program": "${workspaceRoot}/test.js",
+          "cwd": "${workspaceRoot}"
         }
     ]
 }

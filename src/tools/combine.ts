@@ -1,6 +1,6 @@
-import { IRetsQueryOptions, RetsFormat, RetsProcessingError } from '../models';
+import { IRetsQueryOptions, RetsFormat, RetsProcessingError, IRetsObjectOptions } from '../models';
 
-export function combineQuery(source: IRetsQueryOptions): { [key: string]: any } {
+export function combineQueryOptions(source: IRetsQueryOptions): { [key: string]: any } {
     const result: { [key: string]: any } = {};
     result.QueryType = source.queryType || 'DMQL2';
     result.RestrictedIndicator = source.restrictedIndicator || '***';
@@ -13,7 +13,14 @@ export function combineQuery(source: IRetsQueryOptions): { [key: string]: any } 
     result.SearchType = source.searchType;
     result.Class = source.class;
     result.Culture = source.culture;
-    if (!result.SearchType) { throw new RetsProcessingError(new TypeError('SearchType is required for Search action')); }
-    if (!result.Class) { throw new RetsProcessingError(new TypeError('Class is required for Search action')); }
+    return result;
+}
+
+export function combineObjectOptions(source: IRetsObjectOptions): { [key: string]: any } {
+    const result: { [key: string]: any } = {};
+    result.Resource = source.contentId;
+    result.Type = source.type;
+    result.ID = `${source.contentId}:${source.objectId || '*'}`;
+    result.Location = source.withLocation ? 1 : 0;
     return result;
 }

@@ -9,8 +9,8 @@ export function processHeaders(headers?: string[]): { [key: string]: string | st
     const result: { [key: string]: any } = {};
     let i = 0;
     while (i < headers.length) {
-        const [key, value] = [headers[i].toLowerCase(), headers[i + 1]];
-        if (key === 'content-disposition') { // https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Disposition
+        const [key, value] = [headers[i], headers[i + 1]];
+        if (key.toLowerCase() === 'content-disposition') { // https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Disposition
             value.split(/\s*;\s*/).forEach((disposition, index) => {
                 if (index === 0) {
                     mergeValue(result, 'DispositionType', disposition);
@@ -21,14 +21,14 @@ export function processHeaders(headers?: string[]): { [key: string]: string | st
                     }
                 }
             });
-        } else if (key === 'content-transfer-encoding') {
+        } else if (key.toLowerCase() === 'content-transfer-encoding') {
             mergeValue(result, 'TransferEncoding', value.toLowerCase());
         } else {
             mergeValue(result, normalizeKey(key), value);
         }
         i += 2;
     }
-    if (result.objectData != null) {
+    if (result.ObjectData != null) {
         const dataArray: string[] = result.objectData instanceof Array ? result.objectData : [result.objectData];
         result.objectData = dataArray.reduce<{ [key: string]: any }>((previous, data) => {
             const index = data.indexOf('=');

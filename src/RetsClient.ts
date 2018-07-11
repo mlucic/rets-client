@@ -5,24 +5,29 @@ import {
     defaults as defaultRequest, jar as requestJar
 } from 'request';
 import {
-    IRetsResponse, IRetsResponseBody, IClientConnection, RetsAction, RetsVersion, RetsRequestMethod, RetsServerError,
-    RetsProcessingError, RetsClientError, IRetsQueryOptions
+    IRetsResponse, IRetsBody, IClientConnection, RetsAction, RetsVersion, RetsRequestMethod, RetsServerError,
+    RetsProcessingError, RetsClientError, IRetsQueryOptions, IRetsObject, IRetsObjectOptions
 } from './models';
-import { parseRetsResponse } from './tools/parseRetsResponse';
+import { combineQueryOptions, combineObjectOptions } from './tools/combine';
+import { parseMultipartResponse } from './parser/parseMultipartResponse';
+import { parseObjectResponse } from './parser/parseObjectResponse';
+import { parseRetsResponse } from './parser/parseRetsResponse';
 import { processHeaders } from './tools/processHeaders';
 import { replaceAddress } from './tools/replaceAddress';
-import { combineQuery } from './tools/combineQuery';
+import { isIncluded } from './tools/isIncluded';
 
 export class RetsClient {
     public readonly configuration: IClientConnection;
     public readonly actions: { [key: string]: DefaultUriUrlRequestApi<Request, CoreOptions, OptionalUriUrl> } = {};
     private session: RequestAPI<Request, CoreOptions, RequiredUriUrl>;
+    private headers: { [key: string]: any } = {};
 
     public constructor(configuration: IClientConnection) {
         this.configuration = configuration;
+        this.createHeader();
         this.session = defaultRequest({
             jar: requestJar(),
-            headers: this.createHeader(),
+            headers: this.headers,
             method: this.configuration.method || 'GET',
             auth: {
                 user: this.configuration.username,
@@ -39,12 +44,12 @@ export class RetsClient {
     public async login(): Promise<void> {
         const response = await this.sendAction(RetsAction.Login).catch((e: Error | IRetsResponse) => e);
         if (response instanceof Error) { throw response; }
-        if (response.headers.setCookie) {
+        if (response.headers.SetCookie) {
             const cookies = ([] as string[]).concat(response.headers.SetCookie);
             for (let i = -1; ++i < cookies.length;) {
-                const matches = cookies[i].match(/RETS\-Session\-ID=([^;]+);/);
+                const matches = cookies[i].match(/(?:(?:RETS-Session-ID)|(?:X-SESSIONID))=([^;]+);/);
                 if (matches) {
-                    this.configuration.sessionId = matches[i];
+                    this.configuration.sessionId = matches[1];
                     break;
                 }
             }
@@ -53,9 +58,9 @@ export class RetsClient {
             this.configuration.version =
                 (response.headers.RETSVersion instanceof Array ? response.headers.RETSVersion[0] : response.headers.RETSVersion) as RetsVersion;
         }
-        this.session = this.session.defaults({ headers: this.createHeader() }); // 更新Header
+        this.createHeader(); // 更新Header
         this.actions[RetsAction.Login] = this.session.defaults({ uri: this.configuration.url });
-        const source = response.body.extra.content;
+        const source = (response.body as IRetsBody).extra.content;
         if (!source) {
             throw new RetsProcessingError(new ReferenceError('Could not find URL information after login'));
         }
@@ -73,7 +78,7 @@ export class RetsClient {
                     action = RetsAction.Search;
                     break;
             }
-            if (action) {
+            if (action != null) {
                 this.actions[action] = this.session.defaults({ uri: replaceAddress(address, this.configuration.url) });
             }
         });
@@ -87,25 +92,38 @@ export class RetsClient {
         delete this.actions[RetsAction.Search];
     }
 
-    public async search(options: IRetsQueryOptions): Promise<IRetsResponseBody> {
-        const response = await this.sendAction(RetsAction.Search, combineQuery(options));
+    public async search(options: IRetsQueryOptions): Promise<IRetsBody> {
+        const response = await this.sendAction(RetsAction.Search, combineQueryOptions(options));
         if (response instanceof Error) { throw response; }
-        return response.body;
+        return response.body as IRetsBody;
     }
 
-    private createHeader(): { [key: string]: string } {
-        const headers: { [key: string]: string } = {};
-        headers['User-Agent'] = this.configuration.userAgent || 'RETS NodeJS-Client/5.x';
-        headers['RETS-Version'] = this.configuration.version;
+    public async getObjects(options: IRetsObjectOptions): Promise<IRetsObject | IRetsObject[]> {
+        if (this.actions[RetsAction.GetObject]) {
+            this.actions[RetsAction.GetObject] = this.actions[RetsAction.GetObject].defaults({
+                headers: {
+                    ...this.headers,
+                    Accept: options.mime || 'image/jpeg'
+                }
+            });
+        }
+        const response = await this.sendAction(RetsAction.GetObject, combineObjectOptions(options));
+        if (response instanceof Error) { throw response; }
+        return response.body as (IRetsObject | IRetsObject[]);
+    }
+
+    private createHeader(): void {
+        this.headers = this.headers || {};
+        this.headers['User-Agent'] = this.configuration.userAgent || 'RETS NodeJS-Client/5.x';
+        this.headers['RETS-Version'] = this.configuration.version;
         if (this.configuration.userAgentPassword) {
-            headers['RETS-UA-Authorization'] = 'Digest ' + createHash('md5').update([
+            this.headers['RETS-UA-Authorization'] = 'Digest ' + createHash('md5').update([
                 createHash('md5').update(`${this.configuration.userAgent}:${this.configuration.userAgentPassword}`).digest('hex'),
                 '',
                 this.configuration.sessionId || '',
-                headers['RETS-Version']
+                this.headers['RETS-Version']
             ].join(':')).digest('hex');
         }
-        return headers;
     }
 
     private async sendAction(action: RetsAction, query?: any): Promise<IRetsResponse> {
@@ -125,9 +143,18 @@ export class RetsClient {
         if (data.response.statusCode !== 200) {
             throw new RetsServerError(data.response.statusCode, data.response.statusMessage);
         } else {
+            const headers = processHeaders(data.response.rawHeaders);
+            let body: Promise<IRetsBody | IRetsObject | IRetsObject[]>;
+            if (isIncluded('text/xml', headers.ContentType)) {
+                body = parseRetsResponse(data.body);
+            } else if (isIncluded(v => v.includes('multipart'), headers.ContentType)) {
+                body = parseMultipartResponse(data.body, headers);
+            } else {
+                body = parseObjectResponse(data.body, headers);
+            }
             const response = {
-                headers: processHeaders(data.response.rawHeaders),
-                body: await parseRetsResponse(data.body).catch((e: Error) => e),
+                headers: headers,
+                body: await body.catch((e: Error) => e),
                 response: data.response
             };
             if (response.body instanceof Error) { throw response.body; }

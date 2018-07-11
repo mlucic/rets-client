@@ -1,10 +1,11 @@
 import { Response } from 'request';
 
-import { IRetsResponseBody } from './IRetsResponseBody';
+import { IRetsObject } from './IRetsObject';
+import { IRetsBody } from './IRetsBody';
 
 export interface IRetsResponse {
     headers: { [key: string]: string | string[] };
-    body: IRetsResponseBody;
+    body: IRetsBody | IRetsObject | IRetsObject[];
     response: Response;
 }
 

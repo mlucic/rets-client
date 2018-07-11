@@ -1,4 +1,4 @@
-import { IRetsResponseBody } from './IRetsResponseBody';
+import { IRetsBody } from './IRetsBody';
 import { findReplyCodeName } from '../tools/ReplyCode';
 
 export class RetsError extends Error {
@@ -17,7 +17,7 @@ export class RetsError extends Error {
 }
 
 export class RetsReplyError extends RetsError {
-    public constructor(response: IRetsResponseBody) {
+    public constructor(response: IRetsBody) {
         super('RetsReplyError', response.replyCode, response.replyText);
     }
 }
