@@ -173,7 +173,7 @@ export class RetsClient {
         } else {
             const headers = processHeaders(data.response.rawHeaders);
             let body: Promise<IRetsBody | IRetsObject | IRetsObject[]>;
-            if (isIncluded('text/xml', headers.ContentType)) {
+            if (isIncluded(v => v.includes('text/xml'), headers.ContentType)) {
                 body = parseRetsResponse(data.body);
             } else if (isIncluded(v => v.includes('multipart'), headers.ContentType)) {
                 body = parseMultipartResponse(data.body, headers);
