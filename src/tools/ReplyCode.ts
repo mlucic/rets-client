@@ -4,7 +4,6 @@
  * Authoritative documentation for all reply codes in current rets standard:
  * http://www.reso.org/assets/RETS/Specifications/rets_1_8.pdf
  */
-
 export const ReplyCode: { [key: string]: number | number[] } = {
     ClientError: -1,
 
@@ -65,6 +64,10 @@ export const ReplyCode: { [key: string]: number | number[] } = {
 
 const codeKeys = Object.keys(ReplyCode);
 
+/**
+ * Find name using reply code
+ * @param code Reply code
+ */
 export function findReplyCodeName(code: number | string): string | undefined {
     code = +code;
     for (let i = -1; ++i < codeKeys.length;) {

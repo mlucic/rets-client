@@ -9,19 +9,32 @@ import {
     RetsProcessingError, RetsClientError, IRetsQueryOptions, IRetsObject, IRetsObjectOptions
 } from './models';
 import { combineQueryOptions, combineObjectOptions } from './tools/combine';
-import { parseMultipartResponse } from './parser/parseMultipartResponse';
-import { parseObjectResponse } from './parser/parseObjectResponse';
-import { parseRetsResponse } from './parser/parseRetsResponse';
+import { parseMultipartResponse } from './parsers/parseMultipartResponse';
+import { parseObjectResponse } from './parsers/parseObjectResponse';
+import { parseRetsResponse } from './parsers/parseRetsResponse';
 import { processHeaders } from './tools/processHeaders';
 import { replaceAddress } from './tools/replaceAddress';
 import { isIncluded } from './tools/isIncluded';
 
+/**
+ * Client for communicate with RETS server
+ */
 export class RetsClient {
+    /**
+     * Client configuration
+     */
     public readonly configuration: IClientConnection;
+    /**
+     * Available rets actions
+     */
     public readonly actions: { [key: string]: DefaultUriUrlRequestApi<Request, CoreOptions, OptionalUriUrl> } = {};
     private session: RequestAPI<Request, CoreOptions, RequiredUriUrl>;
     private headers: { [key: string]: any } = {};
 
+    /**
+     * Create a new RETS client
+     * @param configuration Client configuration
+     */
     public constructor(configuration: IClientConnection) {
         this.configuration = configuration;
         this.createHeader();
@@ -41,6 +54,9 @@ export class RetsClient {
         this.actions[RetsAction.Login] = this.session.defaults({ uri: this.configuration.url });
     }
 
+    /**
+     * Send Login request
+     */
     public async login(): Promise<void> {
         const response = await this.sendAction(RetsAction.Login).catch((e: Error | IRetsResponse) => e);
         if (response instanceof Error) { throw response; }
@@ -84,6 +100,9 @@ export class RetsClient {
         });
     }
 
+    /**
+     * Send Logout request
+     */
     public async logout(): Promise<void> {
         const response = await this.sendAction(RetsAction.Logout).catch((e: Error | IRetsResponse) => e);
         if (response instanceof Error) { throw response; }
@@ -92,12 +111,20 @@ export class RetsClient {
         delete this.actions[RetsAction.Search];
     }
 
+    /**
+     * Send Search request
+     * @param options Search options
+     */
     public async search(options: IRetsQueryOptions): Promise<IRetsBody> {
         const response = await this.sendAction(RetsAction.Search, combineQueryOptions(options));
         if (response instanceof Error) { throw response; }
         return response.body as IRetsBody;
     }
 
+    /**
+     * Send GetObject request
+     * @param options GetObject options
+     */
     public async getObjects(options: IRetsObjectOptions): Promise<IRetsObject | IRetsObject[]> {
         if (this.actions[RetsAction.GetObject]) {
             this.actions[RetsAction.GetObject] = this.actions[RetsAction.GetObject].defaults({
@@ -115,7 +142,7 @@ export class RetsClient {
 
     private createHeader(): void {
         this.headers = this.headers || {};
-        this.headers['User-Agent'] = this.configuration.userAgent || 'RETS NodeJS-Client/5.x';
+        this.headers['User-Agent'] = this.configuration.userAgent || 'RETS NodeJS-Client/1.x';
         this.headers['RETS-Version'] = this.configuration.version;
         if (this.configuration.userAgentPassword) {
             this.headers['RETS-UA-Authorization'] = 'Digest ' + createHash('md5').update([

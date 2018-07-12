@@ -9,6 +9,10 @@
     "request": "^2.87.0",
     "xml2js": "^0.4.19"
   },
+  "scripts": {
+    "prestart": "tsc",
+    "test": "node test.js"
+  },
   "devDependencies": {
     "@types/lodash": "^4.14.111",
     "@types/node": "^10.5.2",
@@ -26,6 +30,7 @@
     "Real Estate Transaction Standard",
     "ddf",
     "Data Distribution Facility",
+    "crea",
     "real estate",
     "mls"
   ],
