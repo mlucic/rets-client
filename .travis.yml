@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+- '10'
+install:
+- npm install
+script:
+- npm run tsc
+deploy:
+  provider: npm
+  email: l.gholoi@outlook.com
+  api_key:
+    secure: MJWDDv/sU43zlE6M9rZ1gLqe8LjlJ+MhsNjfrVKHdhAFVW27bKc/p/WWbbYgqvD2XsRsXZsLTRvVk/M+RZ/cP2Zd93A3rpkHSjpa+AYDrFJwub+w3XVbVV4SrL0F3BZAo4IOtjJBi15isHmwwixhf5CWi3NgaUpAviYsnnhz4spODB4zzlk+h0eSbkLVw7tskTa/1c/ORswLOqVJ0ZpmyUG7Ij7rsaPhmENyeYbaprBCl3pmEcMZ5UmJ1geykEMkKuV31QrRLBxGGoeAd76m/ETCV2EgC6DvOuGzLEmVn/PaMed6D3iojuZ1PaEzq7ILwUnb6EDVpGhI0fRxhnX1+dTFkv+VD6dbOZeabZSGVp2pkIVov2wKgPZnHUNNAwySETz5gqktpdHADUhzYBB07wBrIVCmdZWMllcZqdN6MIeNIx+Py3WX0Xi02ffWUZmt786p2A8Q2a8ROZSmiAFFaYjYXhUIqRnuLgSlmYsDrhsTOnADeuMJHOmcCGTolhQn2MGL+y1dqsn8sqLBTrI+jtWPuEUTMqRb21ORSqPNk9byBnuRSY2tT8AZhD+1MCcHSTQkCxjOp9I+P03OyJGEW2QE6fmVumV0LMDoZntki/esdaCaBkqcMPlC/91zKvw1KScZyZq9SwyQEeHuvmnOdHonGBZTjWamVHwFSBu0Kao=
+  on:
+    tags: true
+    branch: master
+  skip_cleanup: true
