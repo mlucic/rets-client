@@ -44,8 +44,10 @@ export async function parseRetsResponse(source: string, recordXmlTagName?: strin
         let dataDelimiter = '\t';
         if (root['DELIMITER']) { dataDelimiter = decodeHexString(root['DELIMITER'].$.value); }
         const columns = (root['COLUMNS'] as string).split(dataDelimiter);
-        const rawData = (root['DATA'] as string[] || []).map(v => v.split(dataDelimiter));
+        const element: string | string[] | undefined = root['DATA'];
+        const rawData = (element ? (element instanceof Array ? element : [element]) : []).map(v => v.split(dataDelimiter));
         result.records = rawData.map(raw => raw.reduce((p, v, i) => {
+            if (columns[i] === '') { return p; } // 写在这里以保证读取顺序
             p[columns[i]] = v;
             return p;
         }, {} as { [key: string]: string }));

@@ -1,3 +1,4 @@
+import { detectContentEncoding } from '../tools/detectContentEncoding';
 import { parseRetsResponse } from './parseRetsResponse';
 import { defaultValue } from '../tools/defaultValue';
 import { IRetsObject } from '../models';
@@ -24,17 +25,6 @@ export async function parseObjectResponse(body: any, headers: { [key: string]: s
         return result;
     }
     // 文本编码
-    let content: Buffer;
-    const format = defaultValue(headers.TransferEncoding) || '7bit';
-    let encoding: string = 'ascii';
-    if (format === '8bit') {
-        encoding = 'utf8';
-    } else if (format === 'binary') {
-        encoding = 'latin1';
-    } else if (format === 'base64') {
-        encoding = 'base64';
-    }
-    content = body instanceof Buffer ? body : Buffer.from(body, encoding);
-    result.content = content;
+    result.content = body instanceof Buffer ? body : Buffer.from(body, detectContentEncoding(headers));
     return result;
 }

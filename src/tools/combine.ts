@@ -1,4 +1,4 @@
-import { IRetsQueryOptions, RetsFormat, RetsProcessingError, IRetsObjectOptions } from '../models';
+import { IRetsQueryOptions, RetsFormat, IRetsObjectOptions } from '../models';
 
 export function combineQueryOptions(source: IRetsQueryOptions): { [key: string]: any } {
     const result: { [key: string]: any } = {};
@@ -18,9 +18,10 @@ export function combineQueryOptions(source: IRetsQueryOptions): { [key: string]:
 
 export function combineObjectOptions(source: IRetsObjectOptions): { [key: string]: any } {
     const result: { [key: string]: any } = {};
-    result.Resource = source.contentId;
+    result.Resource = source.resource;
     result.Type = source.type;
     result.ID = `${source.contentId}:${source.objectId || '*'}`;
     result.Location = source.withLocation ? 1 : 0;
+    result.Culture = source.culture;
     return result;
 }

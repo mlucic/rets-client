@@ -104,7 +104,8 @@ export class RetsClient {
                 headers: {
                     ...this.headers,
                     Accept: options.mime || 'image/jpeg'
-                }
+                },
+                encoding: null
             });
         }
         const response = await this.sendAction(RetsAction.GetObject, combineObjectOptions(options));

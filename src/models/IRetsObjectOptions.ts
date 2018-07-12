@@ -1,3 +1,5 @@
+import { DdfCulture } from './DdfCulture';
+
 export interface IRetsObjectOptions {
     mime?: string;
     resource: string;
@@ -5,4 +7,5 @@ export interface IRetsObjectOptions {
     contentId: string;
     objectId?: string;
     withLocation?: boolean;
+    culture?: DdfCulture;
 }

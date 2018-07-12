@@ -10,7 +10,8 @@ export function processHeaders(headers?: string[]): { [key: string]: string | st
     let i = 0;
     while (i < headers.length) {
         const [key, value] = [headers[i], headers[i + 1]];
-        if (key.toLowerCase() === 'content-disposition') { // https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Disposition
+        if (!key || key === '') {
+        } else if (key.toLowerCase() === 'content-disposition') { // https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Disposition
             value.split(/\s*;\s*/).forEach((disposition, index) => {
                 if (index === 0) {
                     mergeValue(result, 'DispositionType', disposition);
