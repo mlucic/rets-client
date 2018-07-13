@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { cloneDeep } from 'lodash';
 
 import {
     DefaultUriUrlRequestApi, Request, CoreOptions, OptionalUriUrl, RequestAPI, RequiredUriUrl, Response,
@@ -36,7 +37,7 @@ export class RetsClient {
      * @param configuration Client configuration
      */
     public constructor(configuration: IClientConnection) {
-        this.configuration = configuration;
+        this.configuration = cloneDeep(configuration);
         this.createHeader();
         this.session = defaultRequest({
             jar: requestJar(),
