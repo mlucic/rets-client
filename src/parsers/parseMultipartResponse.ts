@@ -50,7 +50,7 @@ function findBufferIndex(source: Buffer, target: Buffer, startAt: number = 0): n
 }
 
 function findBoundary(headers: { [key: string]: string | string[] }): string {
-    const boundary = defaultValue(headers.ContentType).match(/boundary=([^"]+)/);
+    const boundary = defaultValue(headers.ContentType).match(/boundary=([^;]+)/);
     if (!boundary) { throw new RetsProcessingError(new TypeError('Could not find boundary under Content-Type')); }
     return `--${trim(boundary[1], '"')}`;
 }
