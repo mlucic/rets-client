@@ -137,7 +137,7 @@ export class RetsClient {
         }
         const response = await this.sendAction(RetsAction.GetObject, combineObjectOptions(options));
         if (response instanceof Error) { throw response; }
-        return response.body as (IRetsObject | IRetsObject[]);
+        return (response.body instanceof Array ? response.body : [response.body]) as IRetsObject[];
     }
 
     private createHeader(): void {
