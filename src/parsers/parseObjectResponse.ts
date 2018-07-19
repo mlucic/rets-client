@@ -16,7 +16,7 @@ export async function parseObjectResponse(body: any, headers: { [key: string]: s
         if (result.description === 'null') { delete result.description; }
     }
     if (defaultValue(headers.ContentType) === 'text/xml') { // 错误
-        result.error = await parseRetsResponse(body);
+        result.error = await parseRetsResponse(body, undefined, true);
         return result;
     }
     if (!body || body === '') { return result; }

@@ -26,7 +26,7 @@ function readNodeContent(source: any): string | undefined {
     return source[XML_CONTENT];
 }
 
-export async function parseRetsResponse(source: string, recordXmlTagName?: string): Promise<IRetsBody> {
+export async function parseRetsResponse(source: string, recordXmlTagName?: string, ignoreRepliedError: boolean = false): Promise<IRetsBody> {
     const document = await parseString(source).catch((e: Error) => e);
     if (document instanceof Error) { throw new RetsProcessingError(document); }
     if (!document.RETS) { throw new RetsProcessingError(new TypeError('Unable to find RETS root element')); }
@@ -85,7 +85,7 @@ export async function parseRetsResponse(source: string, recordXmlTagName?: strin
             result.extra[key] = root[key] instanceof Array ? (root[key].length === 0 ? root[key][0] : root[key]) : root[key];
         }
     });
-    if (result.replyCode !== 0 && result.replyCode !== 20208) {
+    if (!ignoreRepliedError && result.replyCode !== 0 && result.replyCode !== 20208) {
         throw new RetsReplyError(result);
     }
     return result;
