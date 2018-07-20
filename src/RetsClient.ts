@@ -81,7 +81,7 @@ export class RetsClient {
         if (!source) {
             throw new RetsProcessingError(new ReferenceError('Could not find URL information after login'));
         }
-        source.split('\r\n').filter(v => v.indexOf('=') > -1).map(v => v.split('=')).forEach(url => {
+        source.split('\r\n').filter(v => v.indexOf('=') > -1).map(v => v.replace(/\S/g, '').split('=')).forEach(url => {
             const [name, address] = url;
             let action: RetsAction | undefined;
             switch (name) {
