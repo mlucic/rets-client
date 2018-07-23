@@ -59,7 +59,7 @@ export class RetsClient {
      * Send Login request
      */
     public async login(): Promise<void> {
-        const response = await this.sendAction(RetsAction.Login).catch((e: Error | IRetsResponse) => e);
+        const response = await this.sendAction(this.findRequest(RetsAction.Login)).catch((e: Error | IRetsResponse) => e);
         if (response instanceof Error) { throw response; }
         if (response.headers.SetCookie) {
             const cookies = ([] as string[]).concat(response.headers.SetCookie);
@@ -76,7 +76,6 @@ export class RetsClient {
                 (response.headers.RETSVersion instanceof Array ? response.headers.RETSVersion[0] : response.headers.RETSVersion) as RetsVersion;
         }
         this.createHeader(); // 更新Header
-        this.actions[RetsAction.Login] = this.session.defaults({ uri: this.configuration.url });
         const source = (response.body as IRetsBody).extra.content;
         if (!source) {
             throw new RetsProcessingError(new ReferenceError('Could not find URL information after login'));
@@ -105,7 +104,7 @@ export class RetsClient {
      * Send Logout request
      */
     public async logout(): Promise<void> {
-        const response = await this.sendAction(RetsAction.Logout).catch((e: Error | IRetsResponse) => e);
+        const response = await this.sendAction(this.findRequest(RetsAction.Logout)).catch((e: Error | IRetsResponse) => e);
         if (response instanceof Error) { throw response; }
         delete this.actions[RetsAction.GetObject];
         delete this.actions[RetsAction.Logout];
@@ -117,7 +116,7 @@ export class RetsClient {
      * @param options Search options
      */
     public async search(options: IRetsQueryOptions): Promise<IRetsBody> {
-        const response = await this.sendAction(RetsAction.Search, combineQueryOptions(options));
+        const response = await this.sendAction(this.findRequest(RetsAction.Search), combineQueryOptions(options));
         if (response instanceof Error) { throw response; }
         return response.body as IRetsBody;
     }
@@ -127,16 +126,14 @@ export class RetsClient {
      * @param options GetObject options
      */
     public async getObjects(options: IRetsObjectOptions): Promise<IRetsObject | IRetsObject[]> {
-        if (this.actions[RetsAction.GetObject]) {
-            this.actions[RetsAction.GetObject] = this.actions[RetsAction.GetObject].defaults({
-                headers: {
-                    ...this.headers,
-                    Accept: options.mime || 'image/jpeg'
-                },
-                encoding: null
-            });
-        }
-        const response = await this.sendAction(RetsAction.GetObject, combineObjectOptions(options));
+        const action = this.findRequest(RetsAction.GetObject).defaults({
+            headers: {
+                ...this.headers,
+                Accept: options.mime || 'image/jpeg'
+            },
+            encoding: null
+        });
+        const response = await this.sendAction(action, combineObjectOptions(options));
         if (response instanceof Error) { throw response; }
         return (response.body instanceof Array ? response.body : [response.body]) as IRetsObject[];
     }
@@ -155,10 +152,14 @@ export class RetsClient {
         }
     }
 
-    private async sendAction(action: RetsAction, query?: any): Promise<IRetsResponse> {
+    private findRequest(action: RetsAction): DefaultUriUrlRequestApi<Request, CoreOptions, OptionalUriUrl> {
         if (!this.actions[action]) { throw new RetsClientError('No active session detected. Need login first.'); }
+        return this.actions[action];
+    }
+
+    private async sendAction(action: DefaultUriUrlRequestApi<Request, CoreOptions, OptionalUriUrl>, query?: any): Promise<IRetsResponse> {
         const data = await new Promise<{ response: Response, body: any }>((resolve, reject) =>
-            this.actions[action](
+            action(
                 { [this.configuration.method === RetsRequestMethod.POST ? 'form' : 'qs']: query },
                 (e, r, b) => {
                     if (e) {
