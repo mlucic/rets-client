@@ -49,6 +49,10 @@ export interface IRetsQueryOptions {
      */
     class: string;
     /**
+     * Selected fields
+     */
+    select?: string | string[];
+    /**
      * DDF culture (only available for CREA DDF)
      */
     culture?: DdfCulture;

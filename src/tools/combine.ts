@@ -15,6 +15,7 @@ export function combineQueryOptions(source: IRetsQueryOptions): { [key: string]:
     result.SearchType = source.searchType;
     result.Class = source.class;
     result.Culture = source.culture;
+    result.Select = source.select ? ( source.select instanceof Array ? source.select.join(',') : source.searchType ) : undefined;
     return result;
 }
 
