@@ -9,9 +9,13 @@ export interface IRetsObject {
      */
     type: string;
     /**
+     * Content ID
+     */
+    content_id?: string;
+    /**
      * Object ID
      */
-    id?: string;
+    object_id?: string;
     /**
      * Object description
      */

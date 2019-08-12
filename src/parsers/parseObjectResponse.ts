@@ -8,8 +8,11 @@ export async function parseObjectResponse(body: any, headers: { [key: string]: s
     if (headers.Location) { // 地址
         result.address = defaultValue(headers.Location);
     }
-    if (headers.ObjectID) { // ID
-        result.id = defaultValue(headers.ObjectID);
+    if (headers.ContentID) { // Content ID
+        result.content_id = defaultValue(headers.ContentID);
+    }
+    if (headers.ObjectID) { // Object ID
+        result.object_id = defaultValue(headers.ObjectID);
     }
     if (headers.ContentDescription) { // 描述
         result.description = defaultValue(headers.ContentDescription);

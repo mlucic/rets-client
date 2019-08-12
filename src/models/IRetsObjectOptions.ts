@@ -17,13 +17,9 @@ export interface IRetsObjectOptions {
      */
     type: string;
     /**
-     * Resource ID
+     * Content ID/Object ID Map
      */
-    contentId: string;
-    /**
-     * Object ID (default *, means all objects under target resource)
-     */
-    objectId?: string;
+    content: { [key: string]: string };
     /**
      * Also request location (may cause server error if server does not support, default false)
      */

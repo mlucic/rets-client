@@ -23,7 +23,14 @@ export function combineObjectOptions(source: IRetsObjectOptions): { [key: string
     const result: { [key: string]: any } = {};
     result.Resource = source.resource;
     result.Type = source.type;
-    result.ID = `${source.contentId}:${source.objectId || '*'}`;
+
+    let search_ids = [];
+
+    for (let content_id in source.content) {
+        search_ids.push(`${ content_id }:${ source.content[content_id] }`);
+    }
+
+    result.ID = search_ids.join(',');
     result.Location = source.withLocation ? 1 : 0;
     result.Culture = source.culture;
     return result;
