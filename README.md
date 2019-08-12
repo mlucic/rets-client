@@ -32,8 +32,9 @@ const listing = await client.search({
 const result = await client.getObjects({
     resource: '...',
     type: '...',
-    contentId: '...',
-    objectId: '1', // or not given for get all objects
+    content: {
+        '...': '* or specific object ID(s)'
+    }
     withLocation: false
 });
 await client.logout();
