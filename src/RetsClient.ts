@@ -125,7 +125,7 @@ export class RetsClient {
      * Send GetObject request
      * @param options GetObject options
      */
-    public async getObjects(options: IRetsObjectOptions): Promise<IRetsObject | IRetsObject[]> {
+    public async getObjects(options: IRetsObjectOptions): Promise<IRetsObject[]> {
         const action = this.findRequest(RetsAction.GetObject).defaults({
             headers: {
                 ...this.headers,
